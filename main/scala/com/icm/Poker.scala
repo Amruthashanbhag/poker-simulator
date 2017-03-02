@@ -5,11 +5,9 @@ class Poker {
   def execute(input: List[String]): Integer = {
     val hand1 = createHand(input.slice(0, 5))
     val hand2 = createHand(input.slice(5, 10))
-    if(hand1.isEmpty || hand2.isEmpty)
-    {
+    if (hand1.isEmpty || hand2.isEmpty) {
       -1
-    }
-    else {
+    } else {
       play(hand1.get, hand2.get)
     }
   }
@@ -58,7 +56,7 @@ class Poker {
       case 'A' => Some(14)
       case _ => None
     }
-    if(suit.isEmpty || symbol.isEmpty) {
+    if (suit.isEmpty || symbol.isEmpty) {
       None
     }
     else {
