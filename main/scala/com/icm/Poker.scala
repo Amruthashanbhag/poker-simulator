@@ -1,6 +1,12 @@
 package com.icm
 
+import scala.collection.JavaConverters._
+
 class Poker {
+
+  def execute(javaInput: java.util.List[String]): Integer = {
+    execute(javaInput.asScala.toList)
+  }
 
   def execute(input: List[String]): Integer = {
     val hand1 = createHand(input.slice(0, 5))
