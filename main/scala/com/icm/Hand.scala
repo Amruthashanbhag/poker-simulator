@@ -1,10 +1,9 @@
 package com.icm
 
-
-
 class Hand(cards: List[Card]) {
 
   val sortedCards = cards.sorted
+  val reverseSortedCards = sortedCards.map(_.symbol).sortBy(-1 * _)
 
   def score(): Option[HandResult] = {
     royalFlush()
@@ -19,7 +18,6 @@ class Hand(cards: List[Card]) {
       .orElse(highCard())
   }
 
-  // Same rank, same symbols. This tie can be broken only by suit rank
   private def royalFlush(): Option[HandResult] = {
     val res = sortedCards(0).symbol == 10 &&
       sortedCards(1).symbol == 11 &&
@@ -32,7 +30,6 @@ class Hand(cards: List[Card]) {
     else None
   }
 
-  // Same rank, same symbols. This tie can be broken only by suit rank
   private def straightFlush(): Option[HandResult] = {
     val res = straight().flatMap(x => flush())
     res map (r => HandResult(9, r.highest))
@@ -42,14 +39,13 @@ class Hand(cards: List[Card]) {
     val symbolMap = sortedCards.groupBy(c => c.symbol)
     val res = symbolMap.values.exists(_.size == 4)
     if (res) {
-      val otherCard = symbolMap.values.find(_.size == 1).get
-      val rankCards = sortedCards.diff(otherCard)
-      val highest = rankCards.map(_.symbol) ::: otherCard.map(_.symbol)
-      Some(HandResult(8, highest))
+      val otherCards = symbolMap.values.find(_.size == 1).get
+      val rankCards = sortedCards.diff(otherCards)
+      Some(HandResult(8, concat(rankCards, otherCards)))
     }
     else None
   }
-  //symbolMap.keys.toList.reverse
+
   private def fullHouse(): Option[HandResult] = {
     val symbolMap = sortedCards.groupBy(c => c.symbol)
     if (symbolMap.size != 2) {
@@ -60,20 +56,17 @@ class Hand(cards: List[Card]) {
       if (res) {
         val rankCards1 = symbolMap.values.find(_.size == 3).get
         val rankCards2 = symbolMap.values.find(_.size == 2).get
-        val highest = rankCards1.map(_.symbol) ::: rankCards2.map(_.symbol)
-        Some(HandResult(7, highest))
+        Some(HandResult(7, concat(rankCards1, rankCards2)))
       }
       else None
     }
   }
 
-  // Same rank, same symbols. This tie can be broken only by suit rank
   private def flush(): Option[HandResult] = {
     val res = sortedCards.groupBy(c => c.suit).size == 1
-    if (res) Some(HandResult(6, sortedCards.map(_.symbol).sortBy(-1 * _))) else None
+    if (res) Some(HandResult(6, reverseSortedCards)) else None
   }
 
-  // Same rank, same symbols. This tie can be broken only by suit rank
   private def straight(): Option[HandResult] = {
     def isStraight(list: List[Card]): Boolean = list match {
       case Nil => true
@@ -81,7 +74,7 @@ class Hand(cards: List[Card]) {
       case x :: rest => (rest.head.symbol - x.symbol) == 1 && isStraight(rest)
     }
     val res = isStraight(sortedCards)
-    if (res) Some(HandResult(5, sortedCards.map(_.symbol).sortBy(-1 * _))) else None
+    if (res) Some(HandResult(5, reverseSortedCards)) else None
   }
 
   private def threeOfAKind() = {
@@ -90,40 +83,39 @@ class Hand(cards: List[Card]) {
     if (res) {
       val rankCards = symbolMap.values.find(_.size == 3).get
       val otherCards = sortedCards.diff(rankCards)
-      val highest = rankCards.map(_.symbol) ::: otherCards.map(_.symbol).sortBy(-1 * _)
-      Some(HandResult(4, highest))
+      Some(HandResult(4, concat(rankCards, otherCards)))
     }
     else None
   }
 
-  // Same rank, same symbols. This tie can be broken only by suit rank
   private def twoPairs() = {
     val symbolMap = sortedCards.groupBy(c => c.symbol)
     val res = symbolMap.values.count(_.size == 2) == 2
     if (res) {
-      val otherCard = symbolMap.values.find(_.size == 1).get
-      val rankCards = sortedCards.diff(otherCard)
-      val highest = rankCards.map(_.symbol).sortBy(-1 * _) ::: otherCard.map(_.symbol)
-      Some(HandResult(3, highest))
+      val otherCards = symbolMap.values.find(_.size == 1).get
+      val rankCards = sortedCards.diff(otherCards)
+      Some(HandResult(3, concat(rankCards, otherCards)))
     }
     else None
   }
 
-  // Same rank, same symbols. This tie can be broken only by suit rank
   private def pair() = {
     val symbolMap = sortedCards.groupBy(c => c.symbol)
     val res = symbolMap.values.count(_.size == 2) == 1
     if (res) {
       val rankCards = symbolMap.values.find(_.size == 2).get
       val otherCards = sortedCards.diff(rankCards)
-      val highest = rankCards.map(_.symbol) ::: otherCards.map(_.symbol).sortBy(-1 * _)
-      Some(HandResult(2, highest))
+      Some(HandResult(2, concat(rankCards, otherCards)))
     }
     else None
   }
 
-  // Same rank, same symbols. This tie can be broken only by suit rank
   private def highCard() = {
-    Some(HandResult(1, sortedCards.map(_.symbol).sortBy(-1 * _)))
+    Some(HandResult(1, reverseSortedCards))
+  }
+
+  private def concat(list1: List[Card], list2: List[Card]): List[Int] = {
+    val list = list1.map(_.symbol).sortBy(-1 * _) ::: list2.map(_.symbol).sortBy(-1 * _)
+    list
   }
 }
