@@ -1,7 +1,5 @@
 package com.icm;
 
-import scala.collection.JavaConverters;
-
 import java.util.Arrays;
 
 public class CommandExecutor
@@ -15,6 +13,6 @@ public class CommandExecutor
             return -1;
         }
         Poker poker = new Poker();
-        return poker.execute(JavaConverters.asScalaBuffer(Arrays.asList(parameters)).toList());
+        return poker.execute(Arrays.asList(parameters));
     }
 }
